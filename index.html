@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Warsztat 3D – modele do druku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDEFF4;--surface:#FFFFFF;--ink:#171A24;--muted:#5A6073;--line:#D5D9E4;
+  --stage-a:#F7F8FB;--stage-b:#E3E7F0;--grid:rgba(23,26,36,.07);--btn:#171A24;--btn-ink:#FFFFFF;
+  --shadow:rgba(23,26,36,.85);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12141C;--surface:#1B1F2B;--ink:#F2F3F8;--muted:#9AA1B8;--line:#2D3344;
+  --stage-a:#232838;--stage-b:#161924;--grid:rgba(255,255,255,.06);--btn:#F2F3F8;--btn-ink:#12141C;
+  --shadow:rgba(0,0,0,.9);color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#12141C;--surface:#1B1F2B;--ink:#F2F3F8;--muted:#9AA1B8;--line:#2D3344;
+  --stage-a:#232838;--stage-b:#161924;--grid:rgba(255,255,255,.06);--btn:#F2F3F8;--btn-ink:#12141C;
+  --shadow:rgba(0,0,0,.9);color-scheme:dark;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "DM Sans",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0}
+.logo{font:800 22px "Bricolage Grotesque",sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.logo i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#FF6A3D,#E5389B);display:block;box-shadow:3px 3px 0 var(--shadow)}
+.top{display:flex;gap:10px;align-items:center}
+.cart{font-weight:700;padding:9px 14px;border:2px solid var(--ink);border-radius:12px}
+.btn{font:700 15px "DM Sans",sans-serif;background:var(--btn);color:var(--btn-ink);border:0;border-radius:12px;padding:11px 18px;cursor:pointer}
+.btn:focus-visible,[contenteditable]:focus-visible,.drop:focus-visible{outline:3px solid #3B82F6;outline-offset:3px}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.hero{padding:26px 0 34px;max-width:720px}
+h1{font:800 clamp(34px,6vw,58px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin:0 0 14px}
+.hero p{color:var(--muted);font-size:18px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:34px 28px;padding-bottom:70px}
+/* wyraźna ramka */
+.card{padding:5px;border-radius:28px;background:linear-gradient(140deg,var(--f1),var(--f2));box-shadow:8px 8px 0 var(--shadow);transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translate(-3px,-3px);box-shadow:11px 11px 0 var(--shadow)}
+.in{background:var(--surface);border-radius:23px;overflow:hidden;height:100%;display:flex;flex-direction:column}
+.stage{position:relative;aspect-ratio:4/3.2;touch-action:pan-y;cursor:grab;
+  background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/28px 28px,radial-gradient(circle at 50% 40%,var(--stage-a),var(--stage-b))}
+.stage:active{cursor:grabbing}
+canvas{width:100%;height:100%;display:block}
+.fmt{position:absolute;left:12px;top:12px;font:700 13px "DM Sans";background:var(--surface);border:2px solid var(--ink);border-radius:999px;padding:3px 11px}
+.hint{position:absolute;right:12px;bottom:10px;font-size:12px;color:var(--muted);pointer-events:none}
+.del{position:absolute;right:10px;top:10px;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--surface);color:var(--ink);font-weight:700;cursor:pointer}
+.body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;flex:1}
+h3{font:700 21px/1.2 "Bricolage Grotesque",sans-serif;margin:0;letter-spacing:-.01em}
+.desc{margin:0;color:var(--muted);font-size:15px}
+.spec{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--line);border-radius:14px;margin:2px 0}
+.spec div{padding:8px 10px;font-weight:700;font-size:14px;min-width:0}
+.spec div+div{border-left:2px solid var(--line)}
+.spec span{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.foot{margin-top:auto;padding-top:12px;border-top:2px solid var(--line)}
+.price{font:800 34px "Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
+.price small{font-size:16px;font-weight:700}
+.btn.in-cart{background:#16A34A;color:#fff}
+.drop{border:4px dashed var(--muted);border-radius:28px;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;cursor:pointer;color:var(--muted);background:transparent;font:inherit}
+.drop b{font:700 22px "Bricolage Grotesque";color:var(--ink)}
+.drop.over{border-color:#E5389B;color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:500;max-width:90vw;display:none}
+@media (max-width:520px){.top .cart{display:none}.grid{gap:30px 20px}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><i></i>Warsztat 3D</div>
+  </header>
+  <section class="hero">
+    <h1>Gotowe modele do druku 3D</h1>
+    <p>Obróć model w podglądzie 3D i wybierz coś dla siebie.</p>
+  </section>
+  <main class="grid" id="grid">
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const $=s=>document.querySelector(s), grid=$('#grid');
+const FR=[['#FF6A3D','#E5389B'],['#14B8A6','#3B82F6'],['#FACC15','#FB7C2B'],['#8B5CF6','#EC4899'],['#22C55E','#06B6D4']];
+let nCards=0, viewers=[];
+
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',4200)}
+
+/* ---------- parser 3MF ---------- */
+const T=s=>{const m=new THREE.Matrix4();if(!s)return m;const a=s.trim().split(/\s+/).map(Number);
+  return m.set(a[0],a[3],a[6],a[9],a[1],a[4],a[7],a[10],a[2],a[5],a[8],a[11],0,0,0,1)};
+async function load3mf(buf){
+  const zip=await JSZip.loadAsync(buf);
+  const names=Object.keys(zip.files).filter(n=>/\.model$/i.test(n));
+  if(!names.length)throw new Error('W pliku nie znaleziono geometrii modelu.');
+  const docs={};
+  for(const n of names)docs[n]=new DOMParser().parseFromString(await zip.files[n].async('string'),'application/xml');
+  const rootName=docs['3D/3dmodel.model']?'3D/3dmodel.model':names[0], root=docs[rootName];
+  const objs={};
+  for(const n in docs)for(const o of docs[n].getElementsByTagName('object'))objs[n+'|'+o.getAttribute('id')]=o;
+  const pos=[];
+  const emit=(path,id,mat)=>{
+    const o=objs[path+'|'+id];if(!o)return;
+    const mesh=o.getElementsByTagName('mesh')[0];
+    if(mesh){
+      const vs=[...mesh.getElementsByTagName('vertex')].map(v=>new THREE.Vector3(+v.getAttribute('x'),+v.getAttribute('y'),+v.getAttribute('z')).applyMatrix4(mat));
+      for(const t of mesh.getElementsByTagName('triangle'))for(const k of ['v1','v2','v3']){const v=vs[+t.getAttribute(k)];if(v)pos.push(v.x,v.y,v.z)}
+    }
+    for(const c of o.getElementsByTagName('component')){
+      const p=c.getAttribute('p:path'), cp=p?p.replace(/^\//,''):path;
+      emit(cp,c.getAttribute('objectid'),mat.clone().multiply(T(c.getAttribute('transform'))));
+    }
+  };
+  const items=[...root.getElementsByTagName('item')];
+  if(items.length)items.forEach(i=>emit(rootName,i.getAttribute('objectid'),T(i.getAttribute('transform'))));
+  else[...root.getElementsByTagName('object')].forEach(o=>emit(rootName,o.getAttribute('id'),new THREE.Matrix4()));
+  if(!pos.length)throw new Error('Plik nie zawiera trójkątów do wyświetlenia.');
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();g.computeBoundingBox();
+  return g;
+}
+
+/* ---------- podgląd 3D ---------- */
+function makeViewer(stage,object,color,flat){
+  const canvas=stage.querySelector('canvas');
+  const r=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio,2));
+  const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(35,1,.1,50);cam.position.set(0,1.1,6.2);cam.lookAt(0,0,0);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x778899,.9));
+  const d=new THREE.DirectionalLight(0xffffff,.9);d.position.set(3,5,4);scene.add(d);
+  object.traverse(o=>{if(o.isMesh)o.material=new THREE.MeshStandardMaterial({color,roughness:.5,metalness:.05,flatShading:flat,side:THREE.DoubleSide})});
+  const box=new THREE.Box3().setFromObject(object), c=box.getCenter(new THREE.Vector3()), s=box.getSize(new THREE.Vector3());
+  const piv=new THREE.Group();object.position.sub(c);piv.add(object);piv.scale.setScalar(3/Math.max(s.x,s.y,s.z));
+  const spin=new THREE.Group();spin.add(piv);spin.rotation.x=.25;scene.add(spin);
+  const v={r,scene,cam,spin,vis:false,drag:false,w:0,h:0};
+  const fit=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w&&(w!==v.w||h!==v.h)){v.w=w;v.h=h;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}};
+  new ResizeObserver(fit).observe(stage);fit();
+  new IntersectionObserver(e=>v.vis=e[0].isIntersecting).observe(stage);
+  let lx,ly;
+  stage.addEventListener('pointerdown',e=>{v.drag=true;lx=e.clientX;ly=e.clientY;stage.setPointerCapture(e.pointerId)});
+  stage.addEventListener('pointermove',e=>{if(!v.drag)return;spin.rotation.y+=(e.clientX-lx)*.012;spin.rotation.x=Math.max(-1.2,Math.min(1.2,spin.rotation.x+(e.clientY-ly)*.008));lx=e.clientX;ly=e.clientY});
+  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,()=>v.drag=false));
+  viewers.push(v);
+}
+const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+(function loop(){requestAnimationFrame(loop);for(const v of viewers)if(v.vis){if(!v.drag&&!still)v.spin.rotation.y+=.006;v.r.render(v.scene,v.cam)}})();
+
+/* ---------- karty ---------- */
+function addCard(m){
+  const [f1,f2]=FR[nCards++%FR.length];
+  const el=document.createElement('article');el.className='card';el.style.setProperty('--f1',f1);el.style.setProperty('--f2',f2);
+  el.innerHTML=`<div class="in"><div class="stage" aria-label="Podgląd 3D"><canvas></canvas><span class="hint">Przeciągnij, by obrócić</span></div>
+  <div class="body"><h3></h3><p class="desc"></p><div class="foot"><div class="price"></div></div></div></div>`;
+  el.querySelector('h3').textContent=m.title;el.querySelector('.desc').textContent=m.desc;
+  el.querySelector('.price').innerHTML=`${m.price} <small>zł</small>`;
+  grid.append(el);
+  makeViewer(el.querySelector('.stage'),m.obj,m.color,m.flat);
+}
+const mesh=g=>new THREE.Mesh(g);
+const lathe=()=>{const p=[];for(let i=0;i<=24;i++){const t=i/24;p.push(new THREE.Vector2(.55+.35*Math.sin(t*Math.PI*1.6)+.1*t,t*2.6))}return new THREE.LatheGeometry(p,48)};
+const demos=[
+ {title:'Uchwyt na słuchawki Helix',desc:'Skręcony w supeł stojak na biurko. Stabilna podstawa, wydruk bez podpór.',mat:'PLA',time:'3 h 40 min',dim:'92×92×140 mm',price:'49',color:0xFF6A3D,obj:mesh(new THREE.TorusKnotGeometry(1,.32,160,24))},
+ {title:'Wazon Fala',desc:'Cienkościenny wazon drukowany w trybie wazy. Jedna ściana, gładka faktura.',mat:'PETG',time:'5 h 10 min',dim:'110×110×180 mm',price:'79',color:0x14B8A6,obj:mesh(lathe())},
+ {title:'Organizer Heksagon',desc:'Modułowy pojemnik na śrubki i drobiazgi. Łączy się w plaster miodu.',mat:'PLA',time:'1 h 55 min',dim:'70×61×45 mm',price:'29',color:0xFACC15,flat:true,obj:mesh(new THREE.CylinderGeometry(1.2,1.2,1,6))},
+ {title:'Figurka Kryształ',desc:'Niskopoligonowa bryła na półkę. Kolor ustawisz na etapie slicera.',mat:'PLA Silk',time:'2 h 25 min',dim:'80×80×80 mm',price:'35',color:0x8B5CF6,flat:true,obj:mesh(new THREE.IcosahedronGeometry(1.3,0))}
+];
+demos.forEach(addCard);
+
+/* Prawdziwy model: plik .3mf zapisany jako base64 w polu b64 */
+async function addFromBase64(b64,meta){
+  try{
+    const g=await load3mf(Uint8Array.from(atob(b64),c=>c.charCodeAt(0)).buffer);
+    const o=mesh(g);o.rotation.x=-Math.PI/2;const w=new THREE.Group();w.add(o);
+    addCard({color:0xE5389B,...meta,obj:w});
+  }catch(e){toast('Nie udało się wczytać modelu: '+e.message)}
+}
+</script>
+</body>
+</html>
